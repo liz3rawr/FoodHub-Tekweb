@@ -1,7 +1,7 @@
 USE db_foodhub;
 
 
--- 1. TABEL USERS (Pengguna & Admin)
+-- 1. Tabel Users (pengguna & admin di tabel yang sama, dibedakan dari rolenya)
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 
--- 2. TABEL CATEGORIES (Kategori Masakan)
+-- 2. Tabel Categories (kategori masakan)
 
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,7 +34,7 @@ INSERT IGNORE INTO categories (name) VALUES
 ('Seafood');
 
 
--- 3. TABEL RECIPES (Resep Lengkap)
+-- 3. Tabel Recipes (info lengkap resep)
 
 CREATE TABLE IF NOT EXISTS recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS recipes (
 );
 
 
--- 4. TABEL LIKES (Menyimpan Like User)
+-- 4. Tabel Likes (menyimpan like, dari user mana ke resep mana)
 
 CREATE TABLE IF NOT EXISTS likes (
     user_id INT,
@@ -63,6 +63,9 @@ CREATE TABLE IF NOT EXISTS likes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
 );
+
+
+-- 5. Table Comments (mencatat dari user mana di resep mana)
 
 CREATE TABLE IF NOT EXISTS comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
