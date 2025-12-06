@@ -9,6 +9,19 @@ $(document).ready(function() {
     const ASSETS_PATH = root + '/assets/uploads/';
 
     console.log("System Ready. API:", API_PATH);
+
+    $('#tabLikedRecipes').addClass('hidden');
+    if ($('#btnMy').length) {
+        $('#btnMy').removeClass('text-gray-500 border-transparent').addClass('text-orange-600 border-orange-600');
+    }
+
+    $('#btnMy').on('click', function() {
+        switchProfileTab('My');
+    });
+
+    $('#btnLiked').on('click', function() {
+        switchProfileTab('Liked');
+    });
     
     // buat buka detail kartu (User & Admin)
     $(document).on('click', '.js-open-detail', function(e) {
@@ -146,7 +159,12 @@ $(document).ready(function() {
     $('#editProfileForm').submit(function(e){
         e.preventDefault();
         $.ajax({
-            url: API_PATH + 'profile.php', type: 'POST', data: new FormData(this), contentType: false, processData: false, dataType: 'json',
+            url: API_PATH + 'profile.php', 
+            type: 'POST', 
+            data: new FormData(this), 
+            contentType: false, 
+            processData: false, 
+            dataType: 'json',
             success: function(res){
                 if(res.status === 'success'){
                     bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
@@ -362,6 +380,27 @@ $(document).ready(function() {
             d.forEach(c=>{ let av=getUserAvatarHtml(c.photo,c.name,"w-8 h-8","text-xs"); h+=`<div class="flex gap-3 items-start mb-3 animate-fade-in">${av}<div class="bg-gray-50 p-3 rounded-lg w-full border border-gray-100"><div class="text-xs font-bold text-gray-700 mb-1">${c.name}</div><div class="text-sm text-gray-600">${c.comment}</div></div></div>`; });
             $('#commentList').html(h);
         });
+    }
+
+    function switchProfileTab(tab) {
+        // reset button styles
+        $('#btnMy').removeClass('text-orange-600 border-orange-600').addClass('text-gray-500 border-transparent');
+        $('#btnLiked').removeClass('text-orange-600 border-orange-600').addClass('text-gray-500 border-transparent');
+
+        // hide all tabs
+        $('#tabMyRecipes').addClass('hidden');
+        $('#tabLikedRecipes').addClass('hidden');
+
+        // activate selected tab
+        if (tab === 'My') {
+            $('#btnMy').removeClass('text-gray-500 border-transparent').addClass('text-orange-600 border-orange-600');
+            $('#tabMyRecipes').removeClass('hidden');
+            loadMyRecipes();
+        } else {
+            $('#btnLiked').removeClass('text-gray-500 border-transparent').addClass('text-orange-600 border-orange-600');
+            $('#tabLikedRecipes').removeClass('hidden');
+            loadLikedRecipes();
+        }
     }
 
     // ui helpers
