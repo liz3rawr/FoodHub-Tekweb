@@ -66,7 +66,7 @@ $(document).ready(function() {
         toggleLike(id, isLikedTab);
     });
 
-    // admin actions (Approve/Reject di Modal)
+    // admin actions
     $('#btnApproveAction').click(function() { processRecipe($(this).data('id'), 'approve'); });
     $('#btnRejectAction').click(function() { processRecipe($(this).data('id'), 'reject'); });
 
@@ -127,6 +127,7 @@ $(document).ready(function() {
             },
             complete: function() { btn.prop('disabled', false).text('Terbitkan'); }
         });
+
     });
 
     // edit recipe (Global)
