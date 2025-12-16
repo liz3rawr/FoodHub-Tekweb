@@ -274,13 +274,27 @@ function loadLikedRecipes() {
 }
 function loadPendingRecipes() {
     $.getJSON(API_PATH + 'recipe.php?action=read_pending', function(d){
-        let h = ''; if(d.length == 0) h = '<div class="text-center py-4 text-sm text-gray-400">Tidak ada data.</div>';
+        let h = (d.length == 0) ? '<div class="text-center py-4 text-sm text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50">Tidak ada antrian resep.</div>' : '';
+            
         d.forEach(i => {
-            let av = getUserAvatarHtml(i.user_photo, i.author, "w-8 h-8", "text-xs");
-            h += `<div class="js-open-review flex justify-between items-center border-b p-3 hover:bg-gray-50 cursor-pointer transition bg-white rounded mb-1" data-id="${i.id}">
-                    <div class="flex items-center gap-3">${av}<div><div class="font-bold text-sm line-clamp-1">${i.title}</div><div class="text-xs text-gray-500">${i.author}</div></div></div>
-                    <span class="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold">Review ></span>
-                  </div>`;
+            let av = getUserAvatarHtml(i.user_photo, i.author, "w-8 h-8", "text-sm");
+                
+            h += `
+            <div class="js-open-review group flex justify-between items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-300 cursor-pointer mb-3" data-id="${i.id}">
+                <div class="flex items-center gap-4">
+                    ${av}
+                    <div>
+                        <div class="font-bold text-gray-800 group-hover:text-orange-600 transition line-clamp-1">${i.title}</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1">
+                            Oleh: ${i.author}
+                        </div>
+                    </div>
+                </div>
+                    
+                <button class="text-xs font-bold bg-orange-50 text-orange-600 px-4 py-2 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 shadow-sm flex items-center gap-2">
+                    Review <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>`;
         });
         $('#pendingList, #pendingListAdmin').html(h);
     });
@@ -304,8 +318,8 @@ function loadAdminAllRecipes() {
                     </div>
                 </div>
                 <div class="px-4 pb-4 pt-0 mt-auto flex gap-2">
-                    <button class="js-edit-recipe flex-1 bg-white border border-blue-200 text-blue-600 text-xs py-2 rounded-lg font-bold hover:bg-blue-50" data-id="${r.id}">Edit</button>
-                    <button class="js-delete-recipe flex-1 bg-white border border-red-200 text-red-600 text-xs py-2 rounded-lg font-bold hover:bg-red-50" data-id="${r.id}">Hapus</button>
+                    <button class="js-edit-recipe flex-1 bg-white border border-blue-200 text-blue-600 text-xs py-2 rounded-lg font-bold hover:!bg-blue-600 hover:text-white transition-colors duration-200" data-id="${r.id}">Edit</button>
+                    <button class="js-delete-recipe flex-1 bg-white border border-red-200 text-red-600 text-xs py-2 rounded-lg font-bold hover:!bg-red-600 hover:text-white transition-colors duration-200" data-id="${r.id}">Hapus</button>
                 </div>
             </div>`;
         });
