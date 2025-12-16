@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-$(document).ready(function() {
-    let path = window.location.pathname;
-    let rootIndex = path.indexOf('/views/');
-    
-    // Fallback jika tidak ketemu (misal di root)
-    let root = (rootIndex > -1) ? path.substring(0, rootIndex) : '/FoodHub-Tekweb';
-    
-    const API_PATH = root + '/api/';
-    const ASSETS_PATH = root + '/assets/uploads/';
-
-    console.log("System Ready. API:", API_PATH);
-
-=======
 // ============================================================
 // 1. KONFIGURASI GLOBAL
 // ============================================================
@@ -31,27 +17,10 @@ console.log("API Target:", API_PATH);
 $(document).ready(function() {
 
     // --- TAB PROFILE ---
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $('#tabLikedRecipes').addClass('hidden');
     if ($('#btnMy').length) {
         $('#btnMy').removeClass('text-gray-500 border-transparent').addClass('text-orange-600 border-orange-600');
     }
-<<<<<<< HEAD
-
-    $('#btnMy').on('click', function() {
-        switchProfileTab('My');
-    });
-
-    $('#btnLiked').on('click', function() {
-        switchProfileTab('Liked');
-    });
-    
-    // buat buka detail kartu (User & Admin)
-    $(document).on('click', '.js-open-detail', function(e) {
-        // Jangan buka detail jika yang diklik adalah tombol (Edit/Hapus/Like)
-        if ($(e.target).closest('button').length) return;
-        
-=======
     $('#btnMy').on('click', function() { switchProfileTab('My'); });
     $('#btnLiked').on('click', function() { switchProfileTab('Liked'); });
     
@@ -60,60 +29,37 @@ $(document).ready(function() {
     // 1. Buka Detail
     $(document).on('click', '.js-open-detail', function(e) {
         if ($(e.target).closest('button').length) return;
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
         let id = $(this).data('id');
         openDetailModal(id);
     });
 
-<<<<<<< HEAD
-    // kalau mau review yang lg pending (Admin)
-=======
     // 2. Review Pending
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $(document).on('click', '.js-open-review', function(e) {
         let id = $(this).data('id');
         openReviewModal(id);
     });
 
-<<<<<<< HEAD
-    // tombol edit (User & Admin)
-    $(document).on('click', '.js-edit-recipe', function(e) {
-        e.stopPropagation(); // Cegah bubbling ke kartu
-=======
     // 3. Tombol Edit
     $(document).on('click', '.js-edit-recipe', function(e) {
         e.stopPropagation();
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
         let id = $(this).data('id');
         openEditModal(id);
     });
 
-<<<<<<< HEAD
-    // tombol hapus (User & Admin)
-=======
     // 4. Tombol Hapus
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $(document).on('click', '.js-delete-recipe', function(e) {
         e.stopPropagation();
         let id = $(this).data('id');
         deleteRecipe(id);
     });
 
-<<<<<<< HEAD
-    // tombol hapus kategori (Admin)
-=======
     // 5. Hapus Kategori
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $(document).on('click', '.js-delete-cat', function(e) {
         let id = $(this).data('id');
         deleteCategory(id);
     });
 
-<<<<<<< HEAD
-    // tombol like
-=======
     // 6. Tombol Like (SVG Updated)
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $(document).on('click', '.js-toggle-like', function(e) {
         e.stopPropagation();
         let id = $(this).data('id');
@@ -121,16 +67,6 @@ $(document).ready(function() {
         toggleLike(id, isLikedTab);
     });
 
-<<<<<<< HEAD
-    // admin actions
-    $('#btnApproveAction').click(function() { processRecipe($(this).data('id'), 'approve'); });
-    $('#btnRejectAction').click(function() { processRecipe($(this).data('id'), 'reject'); });
-
-    // login
-    $('#loginForm').submit(function(e){
-        e.preventDefault();
-        let btn = $(this).find('button');
-=======
     // 7. Admin Actions
     $('#btnApproveAction').off('click').click(function() { processRecipe($(this).data('id'), 'approve'); });
     $('#btnRejectAction').off('click').click(function() { processRecipe($(this).data('id'), 'reject'); });
@@ -141,41 +77,19 @@ $(document).ready(function() {
     $('#loginForm').submit(function(e){
         e.preventDefault(); 
         let btn = $(this).find('button'); 
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
         let txt = btn.text();
         btn.text('Loading...').prop('disabled', true);
 
         $.ajax({
-<<<<<<< HEAD
             url: API_PATH + 'auth.php',
             type: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
-=======
-            url: API_PATH + 'auth.php', type: 'POST', data: $(this).serialize(), dataType: 'json',
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
             success: function(res){
                 if(res.status === 'success') {
                     showToast('Login Berhasil!', 'success');
                     setTimeout(() => {
                         let role = res.role;
-<<<<<<< HEAD
-                        let inAdmin = path.includes('/admin/');
-                        
-                        if(role === 'admin') {
-                            window.location.href = inAdmin ? 'dashboard.php' : root + '/views/admin/dashboard.php';
-                        } else {
-                            window.location.href = root + '/views/dashboard.php';
-                        }
-                    }, 1000);
-                } else { showToast(res.message, 'error'); }
-            },
-            error: function(xhr) {
-                console.error(xhr);
-                showToast('Error Koneksi', 'error');
-            },
-            complete: function() {
-=======
                         let inAdmin = window.location.pathname.includes('/admin/');
                         if(role === 'admin') {
                             window.location.href = inAdmin ? 'dashboard.php' : BASE_URL + '/views/admin/dashboard.php';
@@ -191,13 +105,11 @@ $(document).ready(function() {
             error: function(xhr) { 
                 console.error("Login Error:", xhr.responseText); 
                 showToast('Gagal koneksi', 'error'); 
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
                 btn.text(txt).prop('disabled', false);
             }
         });
     });
 
-<<<<<<< HEAD
     // register
     $('#registerForm').submit(function(e){
         e.preventDefault();
@@ -217,51 +129,11 @@ $(document).ready(function() {
                 else showToast(res.message, 'error');
             },
             complete: function() {
-=======
-    // REGISTER
-    $('#registerForm').submit(function(e){
-        e.preventDefault();
-        let btn = $(this).find('button'); let txt = btn.text(); btn.text('Proses...').prop('disabled',true);
-        $.ajax({ url: API_PATH + 'auth.php', type: 'POST', data: $(this).serialize(), dataType: 'json',
-            success: function(res){
-                if(res.status === 'success') { 
-                    alert(res.message); 
-                    window.location.href = 'login.php'; 
-                } else { 
-                    showToast(res.message, 'error'); 
-                    btn.text(txt).prop('disabled', false);
-                }
-            },
-            error: function(xhr) {
-                console.error("Register Error:", xhr.responseText);
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
                 btn.text(txt).prop('disabled', false);
             }
         });
     });
 
-<<<<<<< HEAD
-    // add recipe (Global)
-    $('#addRecipeForm').submit(function(e){
-        e.preventDefault();
-        let btn = $(this).find('button[type="submit"]'); btn.prop('disabled', true).text('Mengirim...');
-        $.ajax({
-            url: API_PATH + 'recipe.php', type: 'POST', data: new FormData(this), contentType: false, processData: false, dataType: 'json',
-            success: function(res) {
-                if(res.status === 'success') {
-                    showToast(res.message, 'success');
-                    bootstrap.Modal.getInstance(document.getElementById('addRecipeModal')).hide();
-                    $('#addRecipeForm')[0].reset();
-                    reloadAllLists();
-                } else showToast(res.message, 'error');
-            },
-            complete: function() { btn.prop('disabled', false).text('Terbitkan'); }
-        });
-
-    });
-
-    // edit recipe (Global)
-=======
     // ADD RECIPE
     $('#addRecipeForm').submit(function(e){
         e.preventDefault();
@@ -299,7 +171,6 @@ $(document).ready(function() {
     });
 
     // EDIT RECIPE
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $('#editRecipeForm').submit(function(e){
         e.preventDefault();
         $.ajax({
@@ -307,23 +178,15 @@ $(document).ready(function() {
             success: function(res) {
                 if(res.status === 'success') {
                     showToast(res.message, 'success');
-<<<<<<< HEAD
-                    bootstrap.Modal.getInstance(document.getElementById('editRecipeModal')).hide();
-=======
                     let modalEl = document.getElementById('editRecipeModal');
                     if(modalEl) bootstrap.Modal.getInstance(modalEl).hide();
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
                     reloadAllLists();
                 } else showToast(res.message, 'error');
             }
         });
     });
 
-<<<<<<< HEAD
-    // comment
-=======
     // COMMENT
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
     $('#commentForm').submit(function(e){
         e.preventDefault();
         $.post(API_PATH + 'comment.php', $(this).serialize(), function(res){
@@ -334,22 +197,6 @@ $(document).ready(function() {
         }, 'json');
     });
 
-<<<<<<< HEAD
-    // update profile
-    $('#editProfileForm').submit(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: API_PATH + 'profile.php', 
-            type: 'POST', 
-            data: new FormData(this), 
-            contentType: false, 
-            processData: false, 
-            dataType: 'json',
-            success: function(res){
-                if(res.status === 'success'){
-                    bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
-                    loadProfileInfo(); showToast('Profil Update!', 'success');
-=======
     // UPDATE PROFILE
     $('#editProfileForm').submit(function(e){
         e.preventDefault();
@@ -361,7 +208,6 @@ $(document).ready(function() {
                     if(modalEl) bootstrap.Modal.getInstance(modalEl).hide();
                     loadProfileInfo(); 
                     showToast('Profil Update!', 'success');
->>>>>>> fa51ae19fe495b5c2217c833df76d2be9ef0c35f
                 } else showToast(res.message, 'error');
             }
         });
