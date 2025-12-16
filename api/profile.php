@@ -23,45 +23,92 @@ switch ($action) {
         echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
         exit;
 
-    case 'update_profile': // Update profil user
+    case 'update_profile':
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-             http_response_code(405); // Method Not Allowed
-             echo json_encode(["status" => "error", "message" => "Metode POST diperlukan"]);
-             exit;
+                http_response_code(405);
+                echo json_encode(["status" => "error", "message" => "Metode POST diperlukan"]);
+                exit;
         }
         
         $name = htmlspecialchars(strip_tags($_POST['name']));
         $bio = htmlspecialchars(strip_tags($_POST['bio']));
+        
+        // Debugging array untuk melihat apa yang terjadi
+        $debug = [];
+        $error_msg = "";
+
         $sql = "UPDATE users SET name = ?, bio = ? WHERE id = ?";
         $params = [$name, $bio, $user_id];
 
-        if(isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-            $ext = strtolower(pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION));
-            // Tambahkan validasi tipe file yang lebih ketat di sini jika diperlukan
-            $new_filename = "user_" . $user_id . "_" . time() . "." . $ext;
-            $target_dir = dirname(__DIR__) . "/assets/uploads/";
-            if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
+        // Cek apakah ada file yang dikirim
+        if(isset($_FILES['photo'])) {
+            $debug['file_info'] = $_FILES['photo']; // Info file
 
-            if(move_uploaded_file($_FILES["photo"]["tmp_name"], $target_dir . $new_filename)) {
-                $sql = "UPDATE users SET name = ?, bio = ?, photo = ? WHERE id = ?";
-                $params = [$name, $bio, $new_filename, $user_id];
+            if($_FILES['photo']['error'] === 0) {
+                $ext = strtolower(pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION));
+                $new_filename = "user_" . $user_id . "_" . time() . "." . $ext;
+                
+                // DEFINISI FOLDER TUJUAN (Pastikan struktur folder sesuai)
+                // dirname(__DIR__) naik satu level dari folder 'api' ke root project
+                $base_path = dirname(__DIR__); 
+                $target_dir_relative = "/assets/uploads/users/";
+                $target_dir = $base_path . $target_dir_relative;
+                
+                $debug['target_dir'] = $target_dir; // Cek path ini benar atau salah
+
+                // 1. Cek/Buat Folder
+                if (!is_dir($target_dir)) {
+                    // Coba buat folder
+                    if(!mkdir($target_dir, 0777, true)) {
+                        $error_msg = "Gagal membuat folder users. Cek izin (permission) folder assets/uploads.";
+                        $debug['mkdir_fail'] = true;
+                    }
+                }
+
+                // 2. Pindahkan File
+                if(empty($error_msg)) {
+                    $target_file = $target_dir . $new_filename;
+                    
+                    if(move_uploaded_file($_FILES["photo"]["tmp_name"], $target_file)) {
+                        // SUKSES UPLOAD
+                        $sql = "UPDATE users SET name = ?, bio = ?, photo = ? WHERE id = ?";
+                        $params = [$name, $bio, $new_filename, $user_id];
+                        $debug['upload_status'] = "Sukses pindah file ke: " . $target_file;
+                    } else {
+                        // GAGAL PINDAH FILE
+                        $error_msg = "Gagal memindahkan file (move_uploaded_file error). Cek Permission Write.";
+                    }
+                }
             } else {
-                 // Gagal upload, kirim error tapi jangan exit agar update data lain tetap jalan
-                 error_log("Gagal memindahkan file upload untuk user ID: " . $user_id);
+                // Error dari PHP (misal file terlalu besar)
+                $error_msg = "Error Upload PHP Code: " . $_FILES['photo']['error'];
             }
         }
         
-        $stmt = $db->prepare($sql);
-        if($stmt->execute($params)) {
-            $_SESSION['user_name'] = $name;
-            echo json_encode(["status" => "success", "message" => "Profil berhasil diperbarui!"]);
+        // Eksekusi SQL jika tidak ada error upload fatal
+        if(empty($error_msg)) {
+            $stmt = $db->prepare($sql);
+            if($stmt->execute($params)) {
+                $_SESSION['user_name'] = $name;
+                echo json_encode([
+                    "status" => "success", 
+                    "message" => "Profil update!",
+                    "debug" => $debug // Lihat ini di Console Browser
+                ]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "Gagal update database", "debug" => $debug]);
+            }
         } else {
-            http_response_code(500); // Internal Server Error
-            echo json_encode(["status" => "error", "message" => "Gagal update database"]);
+            // Kirim pesan error spesifik ke frontend
+            echo json_encode([
+                "status" => "error", 
+                "message" => "Upload Gagal: " . $error_msg,
+                "debug" => $debug
+            ]);
         }
         exit;
 
-    case 'get_my_recipes': // Ambil resep buatan user
+    case 'get_my_recipes': 
         $query = "SELECT r.*, u.name as author FROM recipes r 
                   JOIN users u ON r.user_id = u.id 
                   WHERE r.user_id = ? ORDER BY r.created_at DESC";
@@ -70,7 +117,7 @@ switch ($action) {
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         exit;
 
-    case 'get_liked_recipes': // Ambil resep yang disukai user
+    case 'get_liked_recipes': 
         $query = "SELECT r.*, u.name as author FROM recipes r
                   JOIN likes l ON r.id = l.recipe_id
                   JOIN users u ON r.user_id = u.id
@@ -82,7 +129,7 @@ switch ($action) {
         exit;
 
     default:
-        http_response_code(400); // Bad Request
+        http_response_code(400); 
         echo json_encode(["status" => "error", "message" => "Aksi tidak valid atau hilang."]);
         exit;
 }
