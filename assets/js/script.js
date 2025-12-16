@@ -73,11 +73,15 @@ $(document).ready(function() {
     // login
     $('#loginForm').submit(function(e){
         e.preventDefault();
-        let btn = $(this).find('button'); let txt = btn.text();
+        let btn = $(this).find('button');
+        let txt = btn.text();
         btn.text('Loading...').prop('disabled', true);
 
         $.ajax({
-            url: API_PATH + 'auth.php', type: 'POST', data: $(this).serialize(), dataType: 'json',
+            url: API_PATH + 'auth.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
             success: function(res){
                 if(res.status === 'success') {
                     showToast('Login Berhasil!', 'success');
@@ -93,8 +97,13 @@ $(document).ready(function() {
                     }, 1000);
                 } else { showToast(res.message, 'error'); }
             },
-            error: function(xhr) { console.error(xhr); showToast('Error Koneksi', 'error'); },
-            complete: function() { btn.text(txt).prop('disabled', false); }
+            error: function(xhr) {
+                console.error(xhr);
+                showToast('Error Koneksi', 'error');
+            },
+            complete: function() {
+                btn.text(txt).prop('disabled', false);
+            }
         });
     });
 
@@ -102,12 +111,23 @@ $(document).ready(function() {
     $('#registerForm').submit(function(e){
         e.preventDefault();
         let btn = $(this).find('button'); let txt = btn.text(); btn.text('Proses...').prop('disabled',true);
-        $.ajax({ url: API_PATH + 'auth.php', type: 'POST', data: $(this).serialize(), dataType: 'json',
+        $.ajax({
+            url: API_PATH + 'auth.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
             success: function(res){
-                if(res.status === 'success') { alert(res.message); window.location.href = 'login.php'; }
+                if(res.status === 'success') {
+                    showToast(res.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.php';
+                    }, 2000);
+                }
                 else showToast(res.message, 'error');
             },
-            complete: function() { btn.text(txt).prop('disabled', false); }
+            complete: function() {
+                btn.text(txt).prop('disabled', false);
+            }
         });
     });
 
@@ -414,7 +434,7 @@ $(document).ready(function() {
         if(p && p!=="") return `<img src="${ASSETS_PATH}${p}?t=${Date.now()}" class="${s} rounded-full object-cover border border-gray-200 shadow-sm">`;
         return `<div class="${s} rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold ${t} border border-white shadow-sm select-none">${nm.charAt(0).toUpperCase()}</div>`;
     }
-    function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
+    function showToast (m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
     
     // render card
     function renderCard(row, my=false, liked=false) {
