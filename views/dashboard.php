@@ -36,9 +36,9 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
 
             <div class="flex items-center gap-4">
                 <div class="hidden md:block text-right">
-                    <a href="profile.php" id="navProfileLink" class="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-orange-600 bg-gray-50 py-1 px-2 rounded-full transition border border-transparent hover:border-orange-200">
-                        <div class="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
-                        <span id="navProfileName" class="truncate max-w-[100px]"><?php echo htmlspecialchars($name); ?></span>
+                    <a href="profile.php" class="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-orange-600 bg-gray-50 py-1 px-2 rounded-full transition border border-transparent hover:border-orange-200">
+                        <div id="profileAvatarContainer" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0"></div>
+                        <span id="profileName" class="truncate max-w-[100px]"><?php echo htmlspecialchars($name); ?></span>
                     </a>
                 </div>
                 <a href="logout.php" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-gray-200 transition">
@@ -89,13 +89,22 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
                 <div class="relative w-full">
                     <input type="text" id="searchRecipe" placeholder="Cari resep (cth: Nasi Goreng)..." 
                         class="w-full pl-10 pr-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm">
-                    <span class="absolute left-3 top-3.5 text-gray-400">🔍</span>
+                    <span class="absolute left-3 top-4 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
+                        </svg>
+
+                    </span>
                 </div>
             </div>
             
             <button data-bs-toggle="modal" data-bs-target="#addRecipeModal" 
                 class="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-full shadow-md transition flex items-center justify-center gap-2">
-                <span>📝</span> Tulis Resep Baru
+                <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                    </svg>
+                </span> Tulis Resep Baru
             </button>
         </div>
 

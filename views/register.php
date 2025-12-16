@@ -10,7 +10,7 @@
 <body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-8 rounded-xl shadow-lg w-96">
         <h2 class="text-2xl font-bold text-center mb-6">Daftar Akun</h2>
-        <form id="registerForm">
+        <form id="registerForm", method="POST">
             <input type="hidden" name="action" value="register">
             <div class="mb-4"><label class="block text-sm font-bold mb-2">Nama</label><input type="text" name="name" class="w-full border p-2 rounded" required></div>
             <div class="mb-4"><label class="block text-sm font-bold mb-2">Email</label><input type="email" name="email" class="w-full border p-2 rounded" required></div>
@@ -20,6 +20,12 @@
         </form>
         <div class="mt-4 text-center text-sm">Sudah punya akun? <a href="login.php" class="text-orange-600 font-bold">Login</a></div>
     </div>
-    <script src="../assets/js/script.js"></script>
+    <?php 
+        // Deteksi nama folder project secara otomatis
+        $path = $_SERVER['REQUEST_URI']; 
+        $parts = explode('/', trim($path, '/'));
+        $projectFolder = $parts[0]; // Mengambil nama folder pertama setelah localhost
+    ?>
+    <script src="/<?php echo $projectFolder; ?>/assets/js/script.js"></script>
 </body>
 </html>
