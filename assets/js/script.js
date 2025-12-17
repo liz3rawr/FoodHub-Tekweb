@@ -397,18 +397,32 @@ function openEditModal(id) {
 
 // ACTIONS
 function processRecipe(id, act) {
-    if(confirm(act=='approve'?'Setujui resep ini?':'Tolak resep ini?')) {
+    const msg = act=='approve' ? 'Setujui resep ini?' : 'Tolak resep ini?';
+    showConfirm(msg, function(){
         $.post(API_PATH+'recipe.php', {action:act, id:id}, function(){
             let modalEl = document.getElementById('reviewModal');
             if(modalEl) bootstrap.Modal.getInstance(modalEl).hide();
             reloadAllLists();
             showToast('Berhasil diproses', 'success');
         }, 'json');
-    }
+    }, function(){ /* cancelled */ });
 }
 
-function deleteRecipe(id) { if(confirm("Hapus permanen?")) $.post(API_PATH+'recipe.php', {action:'delete', id:id}, function(r){ if(r.status=='success') $(`#card-${id}`).fadeOut(); else showToast(r.message,'error'); }, 'json'); }
-function deleteCategory(id) { if(confirm("Hapus kategori?")) $.post(API_PATH+'recipe.php', {action:'delete_category', id:id}, function(r){ if(r.status=='success') loadCategories(); else showToast(r.message,'error'); }, 'json'); }
+function deleteRecipe(id) {
+    showConfirm('Hapus permanen?', function(){
+        $.post(API_PATH+'recipe.php', {action:'delete', id:id}, function(r){
+            if(r.status=='success') $(`#card-${id}`).fadeOut(); else showToast(r.message,'error');
+        }, 'json');
+    }, function(){ /* cancelled */ });
+}
+
+function deleteCategory(id) {
+    showConfirm('Hapus kategori?', function(){
+        $.post(API_PATH+'recipe.php', {action:'delete_category', id:id}, function(r){
+            if(r.status=='success') loadCategories(); else showToast(r.message,'error');
+        }, 'json');
+    }, function(){ /* cancelled */ });
+}
 
 // --- TOGGLE LIKE (DENGAN SVG) ---
 function toggleLike(id, fp=false) { 
@@ -480,6 +494,47 @@ function getUserAvatarHtml(p, n, s="w-8 h-8", t="text-xs") {
     </div>`;
 }
 function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
+
+// showConfirm: tampilkan modal konfirmasi yang mem-block background
+// usage: showConfirm(message, onOk, onCancel)
+function showConfirm(message, onOk, onCancel){
+    // buat elemen backdrop dan dialog
+    const id = 'custom-confirm-' + Date.now();
+    const backdrop = $(`<div id="${id}-backdrop" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"></div>`);
+    const dialog = $(`
+        <div id="${id}" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <div class="text-gray-800 font-bold text-lg mb-3">Konfirmasi</div>
+            <div class="text-sm text-gray-600 mb-6">${message}</div>
+            <div class="flex justify-end gap-3">
+                <button class="cf-cancel bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded">Batal</button>
+                <button class="cf-ok bg-orange-600 text-white px-4 py-2 rounded">OK</button>
+            </div>
+        </div>
+    `);
+
+    // mencegah klik menutup backdrop
+    backdrop.append(dialog);
+    $('body').append(backdrop);
+
+    // fokus ke tombol OK
+    dialog.find('.cf-ok').focus();
+
+    function cleanup(){
+        backdrop.remove();
+    }
+
+    dialog.find('.cf-cancel').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onCancel === 'function') onCancel();
+    });
+
+    dialog.find('.cf-ok').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onOk === 'function') onOk();
+    });
+}
 
 // --- RENDER CARD (DENGAN SVG) ---
 function renderCard(row, my=false, liked=false) {
