@@ -5,6 +5,12 @@ header('Content-Type: application/json');
 include_once '../config/Database.php';
 include_once '../controllers/RecipeController.php'; 
 
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    // Jika bukan dari AJAX, tendang user kembali ke halaman tampilan
+    header("Location: ../index.php");
+    exit;
+}
+
 $database = new Database();
 $db = $database->getConnection();
 $controller = new RecipeController($db); 

@@ -2,6 +2,12 @@
 session_start();
 include_once '../config/Database.php';
 
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    // Jika bukan dari AJAX, tendang user kembali ke halaman tampilan
+    header("Location: ../index.php");
+    exit;
+}
+
 header('Content-Type: application/json');
 
 $database = new Database();

@@ -3,6 +3,13 @@
 ob_start();
 
 session_start();
+
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    // Jika bukan dari AJAX, tendang user kembali ke halaman tampilan
+    header("Location: ../index.php");
+    exit;
+}
+
 include_once '../config/Database.php';
 
 // Pastikan error PHP tidak muncul di output JSON

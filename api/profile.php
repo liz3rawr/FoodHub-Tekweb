@@ -10,6 +10,12 @@ if(!isset($_SESSION['user_id'])) {
     exit;
 }
 
+if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    // Jika bukan dari AJAX, tendang user kembali ke halaman tampilan
+    header("Location: ../index.php");
+    exit;
+}
+
 $database = new Database();
 $db = $database->getConnection();
 $user_id = $_SESSION['user_id'];
