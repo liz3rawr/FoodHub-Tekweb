@@ -1,7 +1,7 @@
 <?php 
 session_start(); 
-// Cek Login, jika tidak ada session user_id, lempar ke login
 if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; } 
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -70,14 +70,36 @@ switch($action) {
         break;
 
     case 'toggle_like':
-        $check = $db->prepare("SELECT * FROM likes WHERE user_id=? AND recipe_id=?"); 
-        $check->execute([$user_id, $_POST['recipe_id']]);
-        if($check->rowCount() > 0) { 
-            $db->prepare("DELETE FROM likes WHERE user_id=? AND recipe_id=?")->execute([$user_id, $_POST['recipe_id']]); 
-            echo json_encode(["status"=>"unliked"]); 
-        } else { 
-            $db->prepare("INSERT INTO likes (user_id, recipe_id) VALUES (?,?)")->execute([$user_id, $_POST['recipe_id']]); 
-            echo json_encode(["status"=>"liked"]); 
+        $recipe_id = isset($_POST['recipe_id']) ? intval($_POST['recipe_id']) : 0;
+        if($user_id == 0 || $recipe_id == 0) {
+            echo json_encode(["status"=>"error", "message"=>"Unauthorized or invalid recipe id"]);
+            break;
+        }
+
+        try {
+            $db->beginTransaction();
+            $check = $db->prepare("SELECT 1 FROM likes WHERE user_id=? AND recipe_id=? LIMIT 1");
+            $check->execute([$user_id, $recipe_id]);
+            if($check->rowCount() > 0) {
+                $del = $db->prepare("DELETE FROM likes WHERE user_id=? AND recipe_id=?");
+                $del->execute([$user_id, $recipe_id]);
+                $action = 'unliked';
+            } else {
+                $ins = $db->prepare("INSERT INTO likes (user_id, recipe_id) VALUES (?,?)");
+                $ins->execute([$user_id, $recipe_id]);
+                $action = 'liked';
+            }
+            // get updated count
+            $cnt = $db->prepare("SELECT COUNT(*) as c FROM likes WHERE recipe_id=?");
+            $cnt->execute([$recipe_id]);
+            $row = $cnt->fetch(PDO::FETCH_ASSOC);
+            $like_count = isset($row['c']) ? intval($row['c']) : 0;
+
+            $db->commit();
+            echo json_encode(["status"=>"success", "action"=>$action, "like_count"=>$like_count, "recipe_id"=>$recipe_id]);
+        } catch(Exception $e) {
+            if($db->inTransaction()) $db->rollBack();
+            echo json_encode(["status"=>"error", "message"=>"Database error"]);
         }
         break;
 
