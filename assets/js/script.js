@@ -68,8 +68,28 @@ $(document).ready(function() {
     });
 
     // 7. Admin Actions
-    $('#btnApproveAction').off('click').click(function() { processRecipe($(this).data('id'), 'approve'); });
     $('#btnRejectAction').off('click').click(function() { processRecipe($(this).data('id'), 'reject'); });
+    $('#btnApproveAction').off('click').click(function() { 
+        let id = $(this).data('id');
+        let category = $(this).data('category'); 
+
+        // Cek apakah kategori kosong/null
+        if (!category || category === 'null' || category.trim() === '') {
+            // Kita cuma butuh tombol OK (untuk tutup), jadi callback 'onCancel' dikosongkan
+            showConfirm(
+                "Kategori resep ini <b>KOSONG</b> (mungkin telah dihapus).<br><br>Admin tidak dapat menyetujui resep tanpa kategori.<br>Silakan minta <b>User untuk Edit resep</b> ini terlebih dahulu.", 
+                function() {
+                    $('#reviewModal').modal('hide'); 
+                },
+                function() {
+                },
+                "PERINGATAN!"
+            );
+            return;
+        }
+
+        processRecipe(id, 'approve'); 
+    });
 
     // --- FORM SUBMISSIONS ---
 
@@ -241,18 +261,20 @@ $(document).ready(function() {
     loadCategories();
     if ($('#profileName').length) loadProfileInfo();
 
-}); // <--- END DOCUMENT READY
+}); 
 
 function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
 
 
-function showConfirm(message, onOk, onCancel){
+function showConfirm(message, onOk, onCancel, title = 'Konfirmasi'){
     // buat elemen backdrop dan dialog
     const id = 'custom-confirm-' + Date.now();
     const backdrop = $(`<div id="${id}-backdrop" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"></div>`);
+    
+    // Gunakan parameter title di header (default: 'Konfirmasi')
     const dialog = $(`
         <div id="${id}" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
-            <div class="text-gray-800 font-bold text-lg mb-3">Konfirmasi</div>
+            <div class="text-gray-800 font-bold text-lg mb-3">${title}</div>
             <div class="text-sm text-gray-600 mb-6">${message}</div>
             <div class="flex justify-end gap-3">
                 <button class="cf-cancel bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded hover:!bg-red-600 hover:text-white transition-colors duration-200">Batal</button>
@@ -435,6 +457,7 @@ function openReviewModal(id) {
         if(d.image) $('#r_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); else $('#r_image').addClass('hidden');
         
         $('#btnApproveAction').data('id', d.id);
+        $('#btnApproveAction').data('category', d.category); 
         $('#btnRejectAction').data('id', d.id);
         new bootstrap.Modal(document.getElementById('reviewModal')).show();
     });
@@ -498,7 +521,7 @@ function deleteRecipe(id) {
 function deleteCategory(id) {
     showConfirm('Hapus kategori?', function(){
         $.post(API_PATH+'recipe.php', {action:'delete_category', id:id}, function(r){
-            if(r.status=='success') { showToast('Kategori berhasil dihapus', 'success'); loadCategories();} 
+            if(r.status=='success') { showToast('Kategori berhasil dihapus', 'success'); loadCategories(); reloadAllLists();} 
             else showToast(r.message,'error');
         }, 'json');
     }, function(){ /* cancelled */ });
