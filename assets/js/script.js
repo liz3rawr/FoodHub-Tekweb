@@ -63,7 +63,7 @@ $(document).ready(function() {
     $(document).on('click', '.js-toggle-like', function(e) {
         e.stopPropagation();
         let id = $(this).data('id');
-        let isLikedTab = $(this).data('tab') === 'liked';
+        let isLikedTab = ($(this).data('tab') === 'liked') || ($('#tabLikedRecipes').is(':visible'));
         toggleLike(id, isLikedTab);
     });
 
@@ -418,24 +418,50 @@ function toggleLike(id, fp=false) {
 
     let countSpan = $(`#likeCount-${id}`);
     let iconSpan = $(`#likeIcon-${id}`);
-    let btn = countSpan.closest('button');
+    let btn = countSpan.length ? countSpan.closest('button') : $(`.js-toggle-like[data-id="${id}"]`);
     let currentCount = parseInt(countSpan.text()) || 0;
 
-    if(!fp) { 
+    if(!fp) {
         if(btn.hasClass('text-red-500')){
-            countSpan.text(Math.max(0, currentCount - 1)); 
+            if(countSpan.length) countSpan.text(Math.max(0, currentCount - 1));
             btn.removeClass('text-red-500').addClass('text-gray-400');
-            iconSpan.html(iconUnliked);
+            if(iconSpan.length) iconSpan.html(iconUnliked);
         } else {
-            countSpan.text(currentCount + 1); 
+            if(countSpan.length) countSpan.text(currentCount + 1);
             btn.removeClass('text-gray-400').addClass('text-red-500');
-            iconSpan.html(iconLiked);
-        } 
-    } 
+            if(iconSpan.length) iconSpan.html(iconLiked);
+        }
+    }
 
-    $.post(API_PATH+'recipe.php', {action:'toggle_like', recipe_id:id}, function(r){ 
-        if(fp) $(`#card-${id}`).fadeOut(); 
-    }, 'json'); 
+    $.post(API_PATH+'recipe.php', {action:'toggle_like', recipe_id:id}, function(r){
+        if(r && r.status === 'success') {
+            if(r.action === 'unliked') {
+                let removed = false;
+                if($(`#card-${id}`).length) {
+                    $(`#card-${id}`).fadeOut(180, function(){ $(this).remove(); });
+                    removed = true;
+                }
+
+                $(`.js-toggle-like[data-id="${id}"]`).each(function(){
+                    let c = $(this).closest('[id^="card-"]');
+                    if(c.length) { c.fadeOut(180, function(){ $(this).remove(); }); removed = true; }
+                });
+
+                if(fp) {
+                    if(!removed) loadLikedRecipes();
+                }
+            }
+
+            if(typeof r.like_count !== 'undefined' && countSpan.length) countSpan.text(r.like_count);
+        } else {
+            let msg = (r && r.message) ? r.message : 'Gagal mengubah like';
+            showToast(msg, 'error');
+            if(fp) loadLikedRecipes();
+        }
+    }, 'json').fail(function(){
+        showToast('Gagal koneksi ke server saat toggle like', 'error');
+        if(fp) loadLikedRecipes();
+    });
 }
 
 function loadComments(id) { $.getJSON(API_PATH+'comment.php', {action:'list', recipe_id:id}, function(d){ let h=''; if(d.length==0)h='<p class="text-gray-400 text-xs italic">Belum ada komentar.</p>'; d.forEach(c=>{ let av=getUserAvatarHtml(c.photo,c.name,"w-8 h-8","text-xs"); h+=`<div class="flex gap-3 items-start mb-3 animate-fade-in">${av}<div class="bg-gray-50 p-3 rounded-lg w-full border border-gray-100"><div class="text-xs font-bold text-gray-700 mb-1">${c.name}</div><div class="text-sm text-gray-600">${c.comment}</div></div></div>`; }); $('#commentList').html(h); }); }
