@@ -163,11 +163,7 @@ class RecipeController {
         // Kalau reject, mau dihapus atau cuma ganti status? 
         // Kalau mau dihapus pakai: DELETE FROM recipes WHERE id=?
         // Disini kita update status aja biar ada history reject
-        if ($action == 'reject') {
-             $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET status='rejected' WHERE id=?");
-        } else {
-             $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET status=? WHERE id=?");
-        }
+        $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET status=? WHERE id=?");
         
         if($stmt->execute([$st, $id])) return ["status"=>"success"];
         return ["status"=>"error"];

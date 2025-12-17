@@ -68,13 +68,30 @@ $(document).ready(function() {
     });
 
     // 7. Admin Actions
-    $('#btnRejectAction').off('click').click(function() { processRecipe($(this).data('id'), 'reject'); });
-    $('#btnApproveAction').off('click').click(function() { 
+    $(document).off('click', '#btnRejectAction').on('click', '#btnRejectAction', function(e) {
+        e.preventDefault();
+        $(this).blur();
         let id = $(this).data('id');
-        let category = $(this).data('category'); 
+        console.log("Tombol Tolak diklik. ID:", id);
+
+        if(id) {
+            processRecipe(id, 'reject'); 
+        } else {
+            showToast("Error: ID Resep tidak ditemukan", "error");
+        }
+    });
+
+    $(document).off('click', '#btnApproveAction').on('click', '#btnApproveAction', function(e) { 
+        e.preventDefault();
+        $(this).blur();
+        
+        let id = $(this).data('id');
+        let rawCategory = $(this).data('category');
+        let category = String(rawCategory || "");
+        console.log("Tombol Setujui diklik. ID:", id, "Kat:", category);
 
         // Cek apakah kategori kosong/null
-        if (!category || category === 'null' || category.trim() === '') {
+        if (!rawCategory || category === 'null' || category.trim() === '') {
             // Kita cuma butuh tombol OK (untuk tutup), jadi callback 'onCancel' dikosongkan
             showConfirm(
                 "Kategori resep ini <b>KOSONG</b> (mungkin telah dihapus).<br><br>Admin tidak dapat menyetujui resep tanpa kategori.<br>Silakan minta <b>User untuk Edit resep</b> ini terlebih dahulu.", 
@@ -307,24 +324,37 @@ function showConfirm(message, onOk, onCancel, title = 'Konfirmasi'){
         </div>
     `);
 
+    // Deteksi Modal Bootstrap
+    const isBootstrapModalOpen = $('body').hasClass('modal-open');
+    if(!isBootstrapModalOpen) $('body').css('overflow', 'hidden');
+
     // mencegah klik menutup backdrop
     backdrop.append(dialog);
     $('body').append(backdrop);
 
-    // fokus ke tombol OK
-    dialog.find('.cf-ok').focus();
+    // Gunakan setTimeout agar render selesai sebelum fokus & cegah scroll
+    setTimeout(() => {
+        const okBtn = dialog.find('.cf-ok');
+        if(okBtn.length) {
+            // Kita coba fokus standar saja dulu untuk menghilangkan potensi error 'apply'
+            okBtn.trigger('focus'); 
+        }
+    }, 100);
 
     function cleanup(){
-        backdrop.remove();
+        backdrop.fadeOut(150, function() {
+            $(this).remove();
+            if(!isBootstrapModalOpen) $('body').css('overflow', ''); 
+        });
     }
 
-    dialog.find('.cf-cancel').on('click', function(e){
+    dialog.find('.cf-cancel').one('click', function(e){
         e.preventDefault();
         cleanup();
         if(typeof onCancel === 'function') onCancel();
     });
 
-    dialog.find('.cf-ok').on('click', function(e){
+    dialog.find('.cf-ok').one('click', function(e){
         e.preventDefault();
         cleanup();
         if(typeof onOk === 'function') onOk();
@@ -539,12 +569,14 @@ function openEditModal(id) {
 function processRecipe(id, act) {
     const msg = act=='approve' ? 'Setujui resep ini?' : 'Tolak resep ini?';
     showConfirm(msg, function(){
-        $.post(API_PATH+'recipe.php', {action:act, id:id}, function(){
+        $.post(API_PATH+'recipe.php', {action:act, id:id}, function(res){
             let modalEl = document.getElementById('reviewModal');
             if(modalEl) bootstrap.Modal.getInstance(modalEl).hide();
             reloadAllLists();
             showToast('Berhasil diproses', 'success');
-        }, 'json');
+        }, 'json').fail(function() {
+            showToast('Gagal koneksi server', 'error');
+        });
     }, function(){ /* cancelled */ });
 }
 
