@@ -358,7 +358,8 @@ function openDetailModal(id) {
     $.getJSON(API_PATH + 'recipe.php', {action:'get_detail', id:id}, function(d){
         $('#view_title').text(d.title); $('#view_category').text(d.category);
         $('#view_desc').text(d.description); $('#view_time').text(d.cooking_time||"-"); $('#view_servings').text(d.servings||"-");
-        $('#view_ing').html(d.ingredients); $('#view_stp').html(d.steps);
+        $('#view_ing').html(d.ingredients.replace(/\n/g, '<br>'));
+        $('#view_stp').html(d.steps.replace(/\n/g, '<br>'));
         $('#view_author_container').html(`<span class="text-gray-500 text-sm">Oleh: <span class="font-bold text-gray-800">${d.author}</span></span>`);
         if(d.image) { $('#view_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); $('#view_placeholder').addClass('hidden'); }
         else { $('#view_image').addClass('hidden'); $('#view_placeholder').text(d.title.charAt(0)).removeClass('hidden'); }
@@ -370,7 +371,9 @@ function openReviewModal(id) {
     $.getJSON(API_PATH + 'recipe.php', {action:'get_detail', id:id}, function(d){
         $('#r_title').text(d.title); 
         $('#r_author_container').html(`<div class="flex items-center gap-2 mb-3"><span class="font-bold">${d.author}</span></div>`);
-        $('#r_desc').text(d.description); $('#r_ing').html(d.ingredients); $('#r_stp').html(d.steps);
+        $('#r_desc').text(d.description);
+        $('#r_ing').html(d.ingredients.replace(/\n/g, '<br>'));
+        $('#r_stp').html(d.steps.replace(/\n/g, '<br>'));
         if(d.image) $('#r_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); else $('#r_image').addClass('hidden');
         
         $('#btnApproveAction').data('id', d.id);
@@ -385,7 +388,8 @@ function openEditModal(id) {
         $.getJSON(API_PATH+'recipe.php', {action:'get_detail', id:id}, function(d){
             $('#editId').val(d.id); $('#editTitle').val(d.title); $('#editDesc').val(d.description); $('#editCategory').val(d.category);
             $('#editTime').val(d.cooking_time); $('#editServings').val(d.servings);
-            $('#editIng').val(d.ingredients.replaceAll('<br />','\n')); $('#editStp').val(d.steps.replaceAll('<br />','\n'));
+            $('#editIng').val(d.ingredients.replaceAll('<br />','\n'));
+            $('#editStp').val(d.steps.replaceAll('<br />','\n'));
             new bootstrap.Modal(document.getElementById('editRecipeModal')).show();
         });
     });
@@ -445,8 +449,15 @@ function switchProfileTab(tab) {
 
 // HELPERS
 function getRecipeImgHtml(img, t, h="h-40") {
-    if(img && img!=="") return `<img src="${ASSETS_PATH}recipes/${img}?t=${Date.now()}" class="w-full ${h} object-cover bg-gray-100 group-hover:scale-105 transition duration-500">`;
-    return `<div class="${h} bg-orange-50 flex items-center justify-center text-orange-300 font-bold text-5xl group-hover:scale-105 transition duration-500 select-none">${t.charAt(0)}</div>`;
+    if(img && img!=="") {
+        return `<img src="${ASSETS_PATH}recipes/${img}?t=${Date.now()}" class="w-full ${h} object-cover bg-gray-100 group-hover:scale-105 transition duration-500">`;
+    }
+    return `
+    <div class="w-full ${h} bg-gray-50 flex items-center justify-center text-gray-300 group-hover:scale-105 transition duration-500">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+        </svg>
+    </div>`;
 }
 
 // --- FUNGSI AVATAR (UPDATE PATH FOLDER) ---
@@ -461,7 +472,12 @@ function getUserAvatarHtml(p, n, s="w-8 h-8", t="text-xs") {
     if(p && p!=="") {
         return `<img src="${ASSETS_PATH}${profileFolder}${p}?t=${Date.now()}" class="${s} rounded-full object-cover border border-gray-200 shadow-sm">`;
     }
-    return `<div class="${s} rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold ${t} border border-white shadow-sm select-none">${nm.charAt(0).toUpperCase()}</div>`;
+    return `
+    <div class="${s} rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200 shadow-sm overflow-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-full h-full p-1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+    </div>`;
 }
 function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
 

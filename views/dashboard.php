@@ -18,7 +18,8 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
     <title>Dashboard - FoodHub</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="../assets/css/style.css">
@@ -49,36 +50,6 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
     </nav>
 
     <div class="container mx-auto mt-8 px-4">
-
-        <?php if($role === 'admin'): ?>
-        <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-8">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span class="bg-red-100 text-red-600 p-1 rounded">👑</span> Panel Admin
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="border rounded-lg p-4">
-                    <h3 class="font-bold text-gray-700 text-sm uppercase mb-3 border-b pb-2">Menunggu Persetujuan</h3>
-                    <div id="pendingList" class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                        <p class="text-center text-gray-400 text-sm py-4">Memuat data...</p>
-                    </div>
-                </div>
-
-                <div class="border rounded-lg p-4 bg-gray-50">
-                    <h3 class="font-bold text-gray-700 text-sm uppercase mb-3 border-b pb-2">Tambah Kategori</h3>
-                    <form id="addCategoryForm" class="flex flex-col gap-3">
-                        <input type="hidden" name="action" value="add_category">
-                        <input type="text" name="name" class="form-control" placeholder="Nama Kategori..." required>
-                        <button type="submit" class="bg-red-600 text-white py-2 rounded font-bold text-sm hover:bg-red-700">
-                            + Simpan
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
-
-
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="flex flex-col md:flex-row gap-2 w-full md:w-2/3">
                 <select id="filterCategory" class="pl-4 pr-8 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm md:w-1/3 text-gray-700 cursor-pointer">
@@ -198,10 +169,10 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
 
                     <div class="flex gap-6 mb-6 border-y border-gray-100 py-3">
                         <div class="flex items-center gap-2 text-sm text-gray-600">
-                            ⏱️ <span id="view_time" class="font-bold">-</span>
+                            <i class="far fa-clock"></i> <span id="view_time" class="font-bold">-</span>
                         </div>
                         <div class="flex items-center gap-2 text-sm text-gray-600">
-                            🍽️ <span id="view_servings" class="font-bold">-</span>
+                            <i class="fas fa-utensils"></i> <span id="view_servings" class="font-bold">-</span>
                         </div>
                     </div>
 
