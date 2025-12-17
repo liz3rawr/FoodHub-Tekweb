@@ -193,7 +193,7 @@ class RecipeController {
             return ["status" => "error", "message" => "Kategori '$name' sudah ada!"];
         }
 
-        // 3. Kalau aman, insert
+        // Kalau aman, insert
         $stmt = $this->conn->prepare("INSERT INTO categories (name) VALUES (?)");
         if($stmt->execute([$name])) {
             return ["status" => "success", "message" => "Kategori berhasil ditambahkan"];

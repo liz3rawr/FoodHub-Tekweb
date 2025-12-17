@@ -139,9 +139,12 @@ $(document).ready(function() {
     // ADD RECIPE
     $('#addRecipeForm').submit(function(e){
         e.preventDefault();
-        let btn = $(this).find('button[type="submit"]'); 
-        let txt = btn.text();
-        btn.prop('disabled', true).text('Mengirim...');
+        
+        let form = $(this); 
+        let btn = form.find('button[type="submit"]'); 
+        let originalText = btn.text(); 
+        
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Mengirim...');
         
         $.ajax({
             url: API_PATH + 'recipe.php', 
@@ -153,22 +156,27 @@ $(document).ready(function() {
             success: function(res) {
                 if(res.status === 'success') {
                     showToast(res.message, 'success');
+                    
                     let modalEl = document.getElementById('addRecipeModal');
                     if(modalEl) {
                         let modalInstance = bootstrap.Modal.getInstance(modalEl);
                         if(modalInstance) modalInstance.hide();
                     }
-                    $('#addRecipeForm')[0].reset();
+                    
+                    form[0].reset();
                     reloadAllLists();
+                    
                 } else {
                     showToast(res.message, 'error');
                 }
             },
             error: function(xhr) {
                 console.error("Add Recipe Error:", xhr.responseText);
-                showToast('Gagal tambah resep', 'error');
+                showToast('Gagal terhubung ke server', 'error');
             },
-            complete: function() { btn.prop('disabled', false).text(txt); }
+            complete: function() { 
+                btn.prop('disabled', false).text(originalText); 
+            }
         });
     });
 
@@ -219,7 +227,7 @@ $(document).ready(function() {
     $('#addCategoryForm').submit(function(e){
         e.preventDefault();
         $.post(API_PATH + 'recipe.php', $(this).serialize(), function(res){
-            if(res.status === 'success'){ showToast('Kategori OK', 'success'); $('#addCategoryForm')[0].reset(); loadCategories(); }
+            if(res.status === 'success'){ showToast(res.message, 'success'); $('#addCategoryForm')[0].reset(); loadCategories(); }
             else showToast(res.message, 'error');
         }, 'json');
     });
@@ -349,6 +357,15 @@ function loadProfileInfo() {
     });
 }
 
+function formatTextToLines(text) {
+    if(!text) return '-';
+    return text.split(/<br\s*\/?>/gi)
+                .map(t => t.trim())
+                .filter(t => t !== '')
+                .map(t => `<div>${t}</div>`) 
+                .join('');
+}
+
 // MODAL OPENERS
 function openDetailModal(id) {
     $('#view_title').text('Loading...'); 
@@ -358,8 +375,8 @@ function openDetailModal(id) {
     $.getJSON(API_PATH + 'recipe.php', {action:'get_detail', id:id}, function(d){
         $('#view_title').text(d.title); $('#view_category').text(d.category);
         $('#view_desc').text(d.description); $('#view_time').text(d.cooking_time||"-"); $('#view_servings').text(d.servings||"-");
-        $('#view_ing').html(d.ingredients.replace(/\n/g, '<br>'));
-        $('#view_stp').html(d.steps.replace(/\n/g, '<br>'));
+        $('#view_ing').html(formatTextToLines(d.ingredients)); 
+        $('#view_stp').html(formatTextToLines(d.steps));
         $('#view_author_container').html(`<span class="text-gray-500 text-sm">Oleh: <span class="font-bold text-gray-800">${d.author}</span></span>`);
         if(d.image) { $('#view_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); $('#view_placeholder').addClass('hidden'); }
         else { $('#view_image').addClass('hidden'); $('#view_placeholder').text(d.title.charAt(0)).removeClass('hidden'); }
@@ -372,8 +389,8 @@ function openReviewModal(id) {
         $('#r_title').text(d.title); 
         $('#r_author_container').html(`<div class="flex items-center gap-2 mb-3"><span class="font-bold">${d.author}</span></div>`);
         $('#r_desc').text(d.description);
-        $('#r_ing').html(d.ingredients.replace(/\n/g, '<br>'));
-        $('#r_stp').html(d.steps.replace(/\n/g, '<br>'));
+        $('#r_ing').html(formatTextToLines(d.ingredients)); 
+        $('#r_stp').html(formatTextToLines(d.steps));
         if(d.image) $('#r_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); else $('#r_image').addClass('hidden');
         
         $('#btnApproveAction').data('id', d.id);
@@ -388,8 +405,16 @@ function openEditModal(id) {
         $.getJSON(API_PATH+'recipe.php', {action:'get_detail', id:id}, function(d){
             $('#editId').val(d.id); $('#editTitle').val(d.title); $('#editDesc').val(d.description); $('#editCategory').val(d.category);
             $('#editTime').val(d.cooking_time); $('#editServings').val(d.servings);
-            $('#editIng').val(d.ingredients.replaceAll('<br />','\n'));
-            $('#editStp').val(d.steps.replaceAll('<br />','\n'));
+            let cleanIng = d.ingredients.replace(/<br\s*\/?>/gi, '\n');
+            let cleanStp = d.steps.replace(/<br\s*\/?>/gi, '\n');
+                
+            // Hapus enter berlebih
+            cleanIng = cleanIng.replace(/\n\s*\n/g, '\n');
+            cleanStp = cleanStp.replace(/\n\s*\n/g, '\n');
+
+            $('#editIng').val(cleanIng);
+            $('#editStp').val(cleanStp);
+
             new bootstrap.Modal(document.getElementById('editRecipeModal')).show();
         });
     });
@@ -397,18 +422,46 @@ function openEditModal(id) {
 
 // ACTIONS
 function processRecipe(id, act) {
-    if(confirm(act=='approve'?'Setujui resep ini?':'Tolak resep ini?')) {
+    const msg = act=='approve' ? 'Setujui resep ini?' : 'Tolak resep ini?';
+    showConfirm(msg, function(){
         $.post(API_PATH+'recipe.php', {action:act, id:id}, function(){
             let modalEl = document.getElementById('reviewModal');
             if(modalEl) bootstrap.Modal.getInstance(modalEl).hide();
             reloadAllLists();
             showToast('Berhasil diproses', 'success');
         }, 'json');
-    }
+    }, function(){ /* cancelled */ });
 }
 
-function deleteRecipe(id) { if(confirm("Hapus permanen?")) $.post(API_PATH+'recipe.php', {action:'delete', id:id}, function(r){ if(r.status=='success') $(`#card-${id}`).fadeOut(); else showToast(r.message,'error'); }, 'json'); }
-function deleteCategory(id) { if(confirm("Hapus kategori?")) $.post(API_PATH+'recipe.php', {action:'delete_category', id:id}, function(r){ if(r.status=='success') loadCategories(); else showToast(r.message,'error'); }, 'json'); }
+function deleteRecipe(id) {
+    showConfirm('Hapus permanen?', function(){
+        $.post(API_PATH+'recipe.php', {action:'delete', id:id}, function(r){
+            if(r.status=='success') {
+                showToast('Resep berhasil dihapus', 'success');
+                    
+                $(`#card-${id}`).remove(); 
+                    
+                setTimeout(() => {
+                    reloadAllLists();
+                }, 100);
+                    
+            } else {
+                showToast(r.message || 'Gagal menghapus', 'error');
+            }
+        }, 'json').fail(function() {
+            showToast('Gagal koneksi ke server', 'error');
+        });
+    }, function(){ /* cancelled */ });
+}
+
+function deleteCategory(id) {
+    showConfirm('Hapus kategori?', function(){
+        $.post(API_PATH+'recipe.php', {action:'delete_category', id:id}, function(r){
+            if(r.status=='success') { showToast('Kategori berhasil dihapus', 'success'); loadCategories();} 
+            else showToast(r.message,'error');
+        }, 'json');
+    }, function(){ /* cancelled */ });
+}
 
 // --- TOGGLE LIKE (DENGAN SVG) ---
 function toggleLike(id, fp=false) { 
@@ -486,13 +539,10 @@ function getRecipeImgHtml(img, t, h="h-40") {
     </div>`;
 }
 
-// --- FUNGSI AVATAR (UPDATE PATH FOLDER) ---
+// --- FUNGSI AVATAR ---
 function getUserAvatarHtml(p, n, s="w-8 h-8", t="text-xs") {
     let nm = n || "U";
     
-    // !!! GANTI INI JIKA PERLU !!!
-    // Jika foto ada di assets/uploads/users/, gunakan 'users/'
-    // Jika foto ada langsung di assets/uploads/, gunakan ''
     let profileFolder = 'users/'; 
 
     if(p && p!=="") {
@@ -505,7 +555,47 @@ function getUserAvatarHtml(p, n, s="w-8 h-8", t="text-xs") {
         </svg>
     </div>`;
 }
+
 function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
+
+function showConfirm(message, onOk, onCancel){
+    // buat elemen backdrop dan dialog
+    const id = 'custom-confirm-' + Date.now();
+    const backdrop = $(`<div id="${id}-backdrop" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"></div>`);
+    const dialog = $(`
+        <div id="${id}" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <div class="text-gray-800 font-bold text-lg mb-3">Konfirmasi</div>
+            <div class="text-sm text-gray-600 mb-6">${message}</div>
+            <div class="flex justify-end gap-3">
+                <button class="cf-cancel bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded hover:!bg-red-600 hover:text-white transition-colors duration-200">Batal</button>
+                <button class="cf-ok bg-orange-600 text-white px-4 py-2 rounded hover:!bg-orange-700 hover:text-white transition-colors duration-200">OK</button>
+            </div>
+        </div>
+    `);
+
+    // mencegah klik menutup backdrop
+    backdrop.append(dialog);
+    $('body').append(backdrop);
+
+    // fokus ke tombol OK
+    dialog.find('.cf-ok').focus();
+
+    function cleanup(){
+        backdrop.remove();
+    }
+
+    dialog.find('.cf-cancel').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onCancel === 'function') onCancel();
+    });
+
+    dialog.find('.cf-ok').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onOk === 'function') onOk();
+    });
+}
 
 // --- RENDER CARD (DENGAN SVG) ---
 function renderCard(row, my=false, liked=false) {

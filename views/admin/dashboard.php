@@ -19,6 +19,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
     <link rel="stylesheet" href="../../assets/css/style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body class="bg-gray-50 pb-20 font-sans">
 
     <nav class="bg-gray-900 text-white p-4 mb-8 shadow-md">
@@ -26,7 +27,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
             <h1 class="text-xl font-bold flex items-center gap-2">
                 <i class="fas fa-user-shield text-blue-300"></i> Admin FoodHub
             </h1>
-            <a href="../logout.php" class="bg-red-600 px-4 py-2 rounded text-xs font-bold hover:bg-red-700 transition">
+            <a href="../logout.php" class="bg-red-600 px-4 py-2 rounded text-xs font-bold hover:bg-red-900 transition">
                 <i class="fas fa-sign-out-alt mr-1"></i> Logout</a>
         </div>
     </nav>
@@ -42,7 +43,7 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
                 <form id="addCategoryForm" class="flex gap-2 mb-4">
                     <input type="hidden" name="action" value="add_category">
                     <input type="text" name="name" class="border p-2 rounded w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Kategori Baru..." required>
-                    <button type="submit" class="bg-blue-600 text-white px-4 rounded text-sm font-bold hover:bg-blue-700 transition flex items-center gap-2 shrink-0">
+                    <button type="submit" class="bg-blue-600 text-white px-4 rounded text-sm font-bold hover:bg-blue-900 transition flex items-center gap-2 shrink-0">
                         <i class="fas fa-plus"></i> Tambah</button>
                 </form>
                 <ul id="categoryListAdmin" class="text-sm space-y-2 text-gray-600 max-h-60 overflow-y-auto custom-scrollbar flex-grow pr-2">
