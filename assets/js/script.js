@@ -243,6 +243,47 @@ $(document).ready(function() {
 
 }); // <--- END DOCUMENT READY
 
+function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
+
+
+function showConfirm(message, onOk, onCancel){
+    // buat elemen backdrop dan dialog
+    const id = 'custom-confirm-' + Date.now();
+    const backdrop = $(`<div id="${id}-backdrop" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"></div>`);
+    const dialog = $(`
+        <div id="${id}" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <div class="text-gray-800 font-bold text-lg mb-3">Konfirmasi</div>
+            <div class="text-sm text-gray-600 mb-6">${message}</div>
+            <div class="flex justify-end gap-3">
+                <button class="cf-cancel bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded hover:!bg-red-600 hover:text-white transition-colors duration-200">Batal</button>
+                <button class="cf-ok bg-orange-600 text-white px-4 py-2 rounded hover:!bg-orange-700 hover:text-white transition-colors duration-200">OK</button>
+            </div>
+        </div>
+    `);
+
+    // mencegah klik menutup backdrop
+    backdrop.append(dialog);
+    $('body').append(backdrop);
+
+    // fokus ke tombol OK
+    dialog.find('.cf-ok').focus();
+
+    function cleanup(){
+        backdrop.remove();
+    }
+
+    dialog.find('.cf-cancel').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onCancel === 'function') onCancel();
+    });
+
+    dialog.find('.cf-ok').on('click', function(e){
+        e.preventDefault();
+        cleanup();
+        if(typeof onOk === 'function') onOk();
+    });
+}
 
 // ============================================================
 // 3. FUNGSI GLOBAL & LOGIC
@@ -554,47 +595,6 @@ function getUserAvatarHtml(p, n, s="w-8 h-8", t="text-xs") {
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
         </svg>
     </div>`;
-}
-
-function showToast(m,t='info'){let c=t=='success'?'border-green-500 text-green-700 bg-green-50':'border-red-500 text-red-700 bg-red-50';let d=$(`<div class="toast-msg fixed top-5 right-5 z-50 p-4 rounded shadow-lg border-l-4 ${c} bg-white flex items-center gap-2 transition duration-300 transform translate-x-full"><span>${t=='success'?'✅':'⚠️'}</span> <b>${m}</b></div>`);$('body').append(d);setTimeout(()=>d.removeClass('translate-x-full'),10);setTimeout(()=>d.addClass('translate-x-full'),3000);setTimeout(()=>d.remove(),3300);}
-
-function showConfirm(message, onOk, onCancel){
-    // buat elemen backdrop dan dialog
-    const id = 'custom-confirm-' + Date.now();
-    const backdrop = $(`<div id="${id}-backdrop" class="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"></div>`);
-    const dialog = $(`
-        <div id="${id}" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
-            <div class="text-gray-800 font-bold text-lg mb-3">Konfirmasi</div>
-            <div class="text-sm text-gray-600 mb-6">${message}</div>
-            <div class="flex justify-end gap-3">
-                <button class="cf-cancel bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded hover:!bg-red-600 hover:text-white transition-colors duration-200">Batal</button>
-                <button class="cf-ok bg-orange-600 text-white px-4 py-2 rounded hover:!bg-orange-700 hover:text-white transition-colors duration-200">OK</button>
-            </div>
-        </div>
-    `);
-
-    // mencegah klik menutup backdrop
-    backdrop.append(dialog);
-    $('body').append(backdrop);
-
-    // fokus ke tombol OK
-    dialog.find('.cf-ok').focus();
-
-    function cleanup(){
-        backdrop.remove();
-    }
-
-    dialog.find('.cf-cancel').on('click', function(e){
-        e.preventDefault();
-        cleanup();
-        if(typeof onCancel === 'function') onCancel();
-    });
-
-    dialog.find('.cf-ok').on('click', function(e){
-        e.preventDefault();
-        cleanup();
-        if(typeof onOk === 'function') onOk();
-    });
 }
 
 // --- RENDER CARD (DENGAN SVG) ---
