@@ -203,11 +203,31 @@ class RecipeController {
     }
 
     public function deleteCategory($id) {
-        $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
-        if($stmt->execute([$id])) {
-            return ["status" => "success", "message" => "Kategori dihapus"];
+        // Ambil nama kategori terlebih dahulu
+        $q = $this->conn->prepare("SELECT name FROM categories WHERE id = ? LIMIT 1");
+        $q->execute([$id]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if(!$row) return ["status"=>"error","message"=>"Kategori tidak ditemukan"];
+
+        $catName = $row['name'];
+
+        try {
+            $this->conn->beginTransaction();
+
+            // Set status resep yang pakai kategori ini menjadi 'pending' dan kosongkan kategorinya
+            $u = $this->conn->prepare("UPDATE recipes SET status = 'pending', category = '' WHERE category = ?");
+            $u->execute([$catName]);
+
+            // Hapus kategori
+            $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
+            $stmt->execute([$id]);
+
+            $this->conn->commit();
+            return ["status" => "success", "message" => "Kategori dihapus; resep terkait diset ke 'pending' untuk diperbarui"];
+        } catch(Exception $e) {
+            if($this->conn->inTransaction()) $this->conn->rollBack();
+            return ["status"=>"error","message"=>"Gagal menghapus kategori"];
         }
-        return ["status" => "error", "message" => "Gagal menghapus"];
     }
 }
 ?>
