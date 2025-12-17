@@ -458,16 +458,43 @@ function openDetailModal(id) {
     $('#view_title').text('Loading...'); 
     let modalEl = document.getElementById('detailModal');
     if(modalEl) new bootstrap.Modal(modalEl).show();
+
+    $('#commentForm').show(); 
+    $('#commentList').show().html('<div class="text-center py-2 text-gray-400 text-xs">Memuat...</div>');
     
     $.getJSON(API_PATH + 'recipe.php', {action:'get_detail', id:id}, function(d){
         $('#view_title').text(d.title); $('#view_category').text(d.category);
-        $('#view_desc').text(d.description); $('#view_time').text(d.cooking_time||"-"); $('#view_servings').text(d.servings||"-");
+        $('#view_desc').text(d.description); $('#view_time').text(d.cooking_time||"-");
+        $('#view_servings').text(d.servings||"-");
         $('#view_ing').html(formatTextToLines(d.ingredients)); 
         $('#view_stp').html(formatTextToLines(d.steps));
         $('#view_author_container').html(`<span class="text-gray-500 text-sm">Oleh: <span class="font-bold text-gray-800">${d.author}</span></span>`);
-        if(d.image) { $('#view_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden'); $('#view_placeholder').addClass('hidden'); }
-        else { $('#view_image').addClass('hidden'); $('#view_placeholder').text(d.title.charAt(0)).removeClass('hidden'); }
-        $('#commentRecipeId').val(id); loadComments(id);
+
+        if(d.image) {
+            $('#view_image').attr('src', ASSETS_PATH + 'recipes/' + d.image).removeClass('hidden');
+            $('#view_placeholder').addClass('hidden');
+        }
+        else {
+            $('#view_image').addClass('hidden');
+            $('#view_placeholder').text(d.title.charAt(0)).removeClass('hidden');
+        }
+
+        if(d.status === 'pending') {
+            // Jika Pending: Sembunyikan form input & kasih pesan
+            $('#commentForm').hide();
+            $('#commentList').html(`
+                <div class="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <span class="text-2xl mb-2">🔒</span>
+                    <p class="text-gray-500 text-sm font-medium">Komentar Dinonaktifkan</p>
+                    <p class="text-gray-400 text-xs">Resep ini masih dalam peninjauan (Pending).</p>
+                </div>
+            `);
+        } else {
+            // Jika Approved/Rejected: Tampilkan form & load komentar
+            $('#commentForm').show();
+            $('#commentRecipeId').val(id); 
+            loadComments(id);
+        }
     });
 }
 
