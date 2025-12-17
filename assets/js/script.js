@@ -227,6 +227,30 @@ $(document).ready(function() {
         }, 'json');
     });
 
+    // 8. HAPUS KOMENTAR (BARU)
+    $(document).on('click', '.js-delete-comment', function(e) {
+        e.preventDefault();
+        let id = $(this).data('id');
+        let recipeId = $('#commentRecipeId').val(); // Ambil ID resep buat reload
+
+        // Gunakan showConfirm punya kamu biar tampilannya konsisten
+        showConfirm("Hapus komentar ini?", function() {
+            $.post(API_PATH + 'comment.php', {
+                action: 'delete', 
+                comment_id: id
+            }, function(res) {
+                if(res.status === 'success') {
+                    showToast('Komentar dihapus', 'success');
+                    loadComments(recipeId); // Reload otomatis
+                } else {
+                    showToast(res.message, 'error');
+                }
+            }, 'json').fail(function() {
+                showToast('Gagal koneksi server', 'error');
+            });
+        });
+    });
+
     // UPDATE PROFILE
     $('#editProfileForm').submit(function(e){
         e.preventDefault();
@@ -528,6 +552,7 @@ function deleteCategory(id) {
 }
 
 // --- TOGGLE LIKE (DENGAN SVG) ---
+// --- TOGGLE LIKE (FIXED: Tidak hilang di Dashboard) ---
 function toggleLike(id, fp=false) { 
     // SVG DEFINITIONS
     const iconUnliked = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>`;
@@ -538,50 +563,99 @@ function toggleLike(id, fp=false) {
     let btn = countSpan.length ? countSpan.closest('button') : $(`.js-toggle-like[data-id="${id}"]`);
     let currentCount = parseInt(countSpan.text()) || 0;
 
+    // 1. Ubah tampilan ikon & warna SECARA LANGSUNG (Optimistic UI)
+    //    Ini supaya user merasa responsif tanpa nunggu server
     if(!fp) {
         if(btn.hasClass('text-red-500')){
+            // User melakukan UNLIKE
             if(countSpan.length) countSpan.text(Math.max(0, currentCount - 1));
             btn.removeClass('text-red-500').addClass('text-gray-400');
             if(iconSpan.length) iconSpan.html(iconUnliked);
         } else {
+            // User melakukan LIKE
             if(countSpan.length) countSpan.text(currentCount + 1);
             btn.removeClass('text-gray-400').addClass('text-red-500');
             if(iconSpan.length) iconSpan.html(iconLiked);
         }
     }
 
+    // 2. Kirim request ke Server
     $.post(API_PATH+'recipe.php', {action:'toggle_like', recipe_id:id}, function(r){
         if(r && r.status === 'success') {
-            if(r.action === 'unliked') {
-                let removed = false;
+            
+            // PERBAIKAN BUG DISINI:
+            // Kita hanya menghapus kartu JIKA user sedang ada di halaman 'Liked Recipes' (fp == true)
+            if(r.action === 'unliked' && fp === true) {
                 if($(`#card-${id}`).length) {
                     $(`#card-${id}`).fadeOut(180, function(){ $(this).remove(); });
-                    removed = true;
                 }
-
-                $(`.js-toggle-like[data-id="${id}"]`).each(function(){
-                    let c = $(this).closest('[id^="card-"]');
-                    if(c.length) { c.fadeOut(180, function(){ $(this).remove(); }); removed = true; }
-                });
-
-                if(fp) {
-                    if(!removed) loadLikedRecipes();
-                }
+                
+                // Cek jika halaman jadi kosong setelah dihapus
+                setTimeout(() => {
+                    if($('#tabLikedRecipes').children().length === 0) loadLikedRecipes();
+                }, 200);
             }
 
+            // Sinkronisasi jumlah like dari server (opsional, untuk akurasi)
             if(typeof r.like_count !== 'undefined' && countSpan.length) countSpan.text(r.like_count);
+
         } else {
+            // Jika gagal, kembalikan tampilan ke semula (Revert)
             let msg = (r && r.message) ? r.message : 'Gagal mengubah like';
             showToast(msg, 'error');
-            if(fp) loadLikedRecipes();
+            if(fp) loadLikedRecipes(); // Reload jika error terjadi di tab liked
         }
     }, 'json').fail(function(){
-        showToast('Gagal koneksi ke server saat toggle like', 'error');
-        if(fp) loadLikedRecipes();
+        showToast('Gagal koneksi ke server', 'error');
     });
 }
 
-function loadComments(id) { $.getJSON(API_PATH+'comment.php', {action:'list', recipe_id:id}, function(d){ let h=''; if(d.length==0)h='<p class="text-gray-400 text-xs italic">Belum ada komentar.</p>'; d.forEach(c=>{ let av=getUserAvatarHtml(c.photo,c.name,"w-8 h-8","text-xs"); h+=`<div class="flex gap-3 items-start mb-3 animate-fade-in">${av}<div class="bg-gray-50 p-3 rounded-lg w-full border border-gray-100"><div class="text-xs font-bold text-gray-700 mb-1">${c.name}</div><div class="text-sm text-gray-600">${c.comment}</div></div></div>`; }); $('#commentList').html(h); }); }
+function loadComments(id) {
+    // Tampilkan loading text sederhana
+    $('#commentList').html('<div class="text-center py-2 text-gray-400 text-xs">Memuat...</div>');
+
+    $.getJSON(API_PATH + 'comment.php', { action: 'list', recipe_id: id }, function(d) {
+        
+        console.log("DEBUG KOMENTAR:", d); // Cek console browser nanti
+
+        let h = '';
+        if (d.length == 0) {
+            h = '<p class="text-gray-400 text-xs italic text-center py-2">Belum ada komentar.</p>';
+        } else {
+            d.forEach(c => {
+                let av = getUserAvatarHtml(c.photo, c.name, "w-8 h-8", "text-xs");
+                
+                // LOGIC TOMBOL HAPUS
+                let deleteBtn = '';
+                if (c.can_delete === true) { 
+                    deleteBtn = `
+                    <button class="js-delete-comment text-gray-300 hover:text-red-500 transition ml-auto p-1 rounded hover:bg-red-50" data-id="${c.id}" title="Hapus Komentar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                          <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-3.53 6.19a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm4 0a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 .75-.75Zm4 0a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>`;
+                }
+
+                h += `
+                <div class="flex gap-3 items-start mb-3 animate-fade-in group">
+                    ${av}
+                    <div class="bg-gray-50 p-3 rounded-lg w-full border border-gray-100 relative hover:border-orange-100 transition">
+                        <div class="flex justify-between items-start">
+                            <div class="text-xs font-bold text-gray-700 mb-1">${c.name}</div>
+                            ${deleteBtn}
+                        </div>
+                        <div class="text-sm text-gray-600 break-words pr-4 leading-snug">${c.comment}</div>
+                        <div class="text-[10px] text-gray-400 mt-2 text-right border-t border-gray-100 pt-1">${c.created_at || ''}</div>
+                    </div>
+                </div>`;
+            });
+        }
+        $('#commentList').html(h);
+    }).fail(function() {
+        $('#commentList').html('<p class="text-red-400 text-xs text-center">Gagal memuat komentar.</p>');
+    });
+}
+
 function switchProfileTab(tab) {
     $('#btnMy').removeClass('text-orange-600 border-orange-600').addClass('text-gray-500 border-transparent');
     $('#btnLiked').removeClass('text-orange-600 border-orange-600').addClass('text-gray-500 border-transparent');
