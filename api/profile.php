@@ -85,6 +85,9 @@ switch ($action) {
                         $error_msg = "Gagal memindahkan file (move_uploaded_file error). Cek Permission Write.";
                     }
                 }
+            } else if ($_FILES['photo']['error'] === 4){
+                // kalau user tidak ganti foto
+                $debug['upload_status'] = "Tidak ada foto baru dipilih (skip upload)";
             } else {
                 // Error dari PHP (misal file terlalu besar)
                 $error_msg = "Error Upload PHP Code: " . $_FILES['photo']['error'];
