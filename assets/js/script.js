@@ -244,13 +244,12 @@ $(document).ready(function() {
         }, 'json');
     });
 
-    // 8. HAPUS KOMENTAR (BARU)
+    // HAPUS KOMENTAR
     $(document).on('click', '.js-delete-comment', function(e) {
         e.preventDefault();
         let id = $(this).data('id');
-        let recipeId = $('#commentRecipeId').val(); // Ambil ID resep buat reload
+        let recipeId = $('#commentRecipeId').val(); 
 
-        // Gunakan showConfirm punya kamu biar tampilannya konsisten
         showConfirm("Hapus komentar ini?", function() {
             $.post(API_PATH + 'comment.php', {
                 action: 'delete', 
@@ -258,7 +257,7 @@ $(document).ready(function() {
             }, function(res) {
                 if(res.status === 'success') {
                     showToast('Komentar dihapus', 'success');
-                    loadComments(recipeId); // Reload otomatis
+                    loadComments(recipeId); 
                 } else {
                     showToast(res.message, 'error');
                 }
@@ -399,6 +398,16 @@ function loadLikedRecipes() {
 }
 function loadPendingRecipes() {
     $.getJSON(API_PATH + 'recipe.php?action=read_pending', function(d){
+        // --- LOGIKA UPDATE BADGE JUMLAH RESEP ---
+        let count = d.length;
+        let badge = $('#pendingCountBadge');
+        
+        if (count > 0) {
+            badge.text(count + " resep").removeClass('hidden'); // Munculkan badge
+        } else {
+            badge.addClass('hidden'); // Sembunyikan kalau 0
+        }
+
         let h = (d.length == 0) ? '<div class="text-center py-4 text-sm text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50">Tidak ada antrian resep.</div>' : '';
             
         d.forEach(i => {

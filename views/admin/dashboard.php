@@ -42,7 +42,8 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
                     <i class="fas fa-tags text-orange-600"></i> Kelola Kategori</h3>
                 <form id="addCategoryForm" class="flex gap-2 mb-4">
                     <input type="hidden" name="action" value="add_category">
-                    <input type="text" name="name" class="border p-2 rounded w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Kategori Baru..." required>
+                    <input type="text" name="name" class="border border-gray-300 p-2 rounded w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:!border-blue-500 hover:shadow-md hover:bg-blue-50 transition-all duration-300" 
+                        placeholder="Kategori Baru..." required>
                     <button type="submit" class="bg-blue-600 text-white px-4 rounded text-sm font-bold hover:bg-blue-900 transition flex items-center gap-2 shrink-0">
                         <i class="fas fa-plus"></i> Tambah</button>
                 </form>
@@ -52,8 +53,17 @@ if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin'){
             
             <!-- Menunggu Persetujuan -->
             <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col h-[25rem]">
-                <h3 class="font-bold text-lg mb-4 border-b pb-2 text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-clock text-yellow-600"></i> Menunggu Persetujuan</h3>
+
+                <div class="flex justify-between items-center border-b pb-2 mb-4">
+                    <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-clock text-yellow-500"></i> Menunggu Persetujuan
+                    </h3>
+                    
+                    <span id="pendingCountBadge" class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full hidden">
+                        0 resep
+                    </span>
+                </div>
+                    
                 <div id="pendingListAdmin" class="space-y-3 overflow-y-auto custom-scrollbar flex-grow pr-4">
                     <p class="text-center text-gray-400 py-4">Loading...</p>
                 </div>
