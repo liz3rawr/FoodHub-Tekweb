@@ -58,7 +58,7 @@ $name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'User';
                 </select>
 
                 <div class="relative w-full">
-                    <input type="text" id="searchRecipe" placeholder="Cari resep (cth: Nasi Goreng)..." 
+                    <input type="text" id="searchRecipe" placeholder="Cari resep..." 
                         class="w-full pl-10 pr-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm">
                     <span class="absolute left-3 top-4 text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
