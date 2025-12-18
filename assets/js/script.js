@@ -476,7 +476,7 @@ function loadProfileInfo() {
 
 function formatTextToLines(text) {
     if(!text) return '-';
-    return text.split(/<br\s*\/?>/gi)
+    return text.split(/(?:<br\s*\/?>|\r\n|\n|\r)/gi)
                 .map(t => t.trim())
                 .filter(t => t !== '')
                 .map(t => `<div>${t}</div>`) 
