@@ -331,7 +331,6 @@ function showConfirm(message, onOk, onCancel, title = 'Konfirmasi'){
     setTimeout(() => {
         const okBtn = dialog.find('.cf-ok');
         if(okBtn.length) {
-            // Kita coba fokus standar saja dulu untuk menghilangkan potensi error 'apply'
             okBtn.trigger('focus'); 
         }
     }, 100);
@@ -391,14 +390,14 @@ function loadLikedRecipes() {
 }
 function loadPendingRecipes() {
     $.getJSON(API_PATH + 'recipe.php?action=read_pending', function(d){
-        // --- LOGIKA UPDATE BADGE JUMLAH RESEP ---
+        // UPDATE BADGE JUMLAH RESEP ---
         let count = d.length;
         let badge = $('#pendingCountBadge');
         
         if (count > 0) {
             badge.text(count + " resep").removeClass('hidden'); // Munculkan badge
         } else {
-            badge.addClass('hidden'); // Sembunyikan kalau 0
+            badge.addClass('hidden');
         }
 
         let h = (d.length == 0) ? '<div class="text-center py-4 text-sm text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50">Tidak ada antrian resep.</div>' : '';
@@ -625,7 +624,6 @@ function toggleLike(id, fp=false) {
     let currentCount = parseInt(countSpan.text()) || 0;
 
     // 1. Ubah tampilan ikon & warna SECARA LANGSUNG (Optimistic UI)
-    //    Ini supaya user merasa responsif tanpa nunggu server
     if(!fp) {
         if(btn.hasClass('text-red-500')){
             // User melakukan UNLIKE
@@ -644,8 +642,7 @@ function toggleLike(id, fp=false) {
     $.post(API_PATH+'recipe.php', {action:'toggle_like', recipe_id:id}, function(r){
         if(r && r.status === 'success') {
             
-            // PERBAIKAN BUG DISINI:
-            // Kita hanya menghapus kartu JIKA user sedang ada di halaman 'Liked Recipes' (fp == true)
+
             if(r.action === 'unliked' && fp === true) {
                 if($(`#card-${id}`).length) {
                     $(`#card-${id}`).fadeOut(180, function(){ $(this).remove(); });
@@ -664,7 +661,7 @@ function toggleLike(id, fp=false) {
             // Jika gagal, kembalikan tampilan ke semula (Revert)
             let msg = (r && r.message) ? r.message : 'Gagal mengubah like';
             showToast(msg, 'error');
-            if(fp) loadLikedRecipes(); // Reload jika error terjadi di tab liked
+            if(fp) loadLikedRecipes(); 
         }
     }, 'json').fail(function(){
         showToast('Gagal koneksi ke server', 'error');

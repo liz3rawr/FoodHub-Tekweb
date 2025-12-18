@@ -145,24 +145,12 @@ class RecipeController {
     }
 
     // --- ADMIN APPROVAL ---
-    // public function reviewRecipe($role, $id, $action) {
-    //     if($role !== 'admin') return ["status"=>"error", "message"=>"Unauthorized"];
-        
-    //     $st = ($action == 'approve') ? 'approved' : 'rejected';
-    //     $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET status=? WHERE id=?");
-        
-    //     if($stmt->execute([$st, $id])) {
-    //         return ["status"=>"success"];
-    //     }
-    //     return ["status"=>"error"];
-    // }
+
     public function reviewRecipe($role, $id, $action) {
         if($role !== 'admin') return ["status"=>"error", "message"=>"Unauthorized"];
         $st = ($action == 'approve') ? 'approved' : 'rejected';
         
         // Kalau reject, mau dihapus atau cuma ganti status? 
-        // Kalau mau dihapus pakai: DELETE FROM recipes WHERE id=?
-        // Disini kita update status aja biar ada history reject
         $stmt = $this->conn->prepare("UPDATE " . $this->table . " SET status=? WHERE id=?");
         
         if($stmt->execute([$st, $id])) return ["status"=>"success"];
@@ -214,48 +202,14 @@ class RecipeController {
         return ["status" => "error", "message" => "Gagal menyimpan kategori"];
     }
 
-    // public function deleteCategory($id) {
-    //     // Ambil nama kategori terlebih dahulu
-    //     $q = $this->conn->prepare("SELECT name FROM categories WHERE id = ? LIMIT 1");
-    //     $q->execute([$id]);
-    //     $row = $q->fetch(PDO::FETCH_ASSOC);
-    //     if(!$row) return ["status"=>"error","message"=>"Kategori tidak ditemukan"];
-
-    //     $catName = $row['name'];
-
-    //     try {
-    //         $this->conn->beginTransaction();
-
-    //         // Set status resep yang pakai kategori ini menjadi 'pending' dan kosongkan kategorinya
-    //         $u = $this->conn->prepare("UPDATE recipes SET status = 'pending', category = '' WHERE category = ?");
-    //         $u->execute([$catName]);
-
-    //         // Hapus kategori
-    //         $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
-    //         $stmt->execute([$id]);
-
-    //         $this->conn->commit();
-    //         return ["status" => "success", "message" => "Kategori dihapus; resep terkait diset ke 'pending' untuk diperbarui"];
-    //     } catch(Exception $e) {
-    //         if($this->conn->inTransaction()) $this->conn->rollBack();
-    //         return ["status"=>"error","message"=>"Gagal menghapus kategori"];
-    //     }
-    // }
 
         public function deleteCategory($id) {
         // 1. Ambil Nama Kategori dulu (opsional, buat log)
         // $stmt = $this->conn->prepare("SELECT name FROM categories WHERE id=?");
         // $stmt->execute([$id]);
         
-        // 2. LOGIKA UTAMA: Reset Resep Terkait
-        // Ubah status jadi 'pending' dan kosongkan kategori untuk resep yang terdampak
-        // Kita set category = NULL (pastikan di database kolom category boleh NULL)
-        // Atau set ke kategori ID default jika ada. 
-        // Di sini kita asumsikan kolom category di tabel recipes adalah VARCHAR nama kategori (berdasarkan kode lama kamu yang pakai nama).
-        // TAPI tunggu, best practice-nya foreign key pake ID.
-        // Berdasarkan file SQL.txt kamu: `category VARCHAR(50)`. Oh kamu simpan NAMA KATEGORI, bukan ID.
+        // 2. Reset Resep Terkait
         
-        // Oke, karena kamu simpan NAMA KATEGORI di tabel recipes, kita harus ambil namanya dulu.
         $getCat = $this->conn->prepare("SELECT name FROM categories WHERE id=?");
         $getCat->execute([$id]);
         $catData = $getCat->fetch(PDO::FETCH_ASSOC);
@@ -264,7 +218,6 @@ class RecipeController {
             $catName = $catData['name'];
             
             // Update resep: status -> pending, category -> 'Uncategorized' atau kosong
-            // Disini Gege set jadi kosong string '' biar ketahuan user harus isi ulang
             $updateRecipe = $this->conn->prepare("UPDATE recipes SET status='pending', category='' WHERE category=?");
             $updateRecipe->execute([$catName]);
         }
