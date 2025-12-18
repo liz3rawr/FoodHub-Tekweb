@@ -1,6 +1,4 @@
-// ============================================================
 // 1. KONFIGURASI GLOBAL
-// ============================================================
 const pathSegments = window.location.pathname.split('/');
 const projectFolder = pathSegments[1] ? pathSegments[1] : 'FoodHub-Tekweb'; 
 
@@ -11,9 +9,7 @@ const ASSETS_PATH = BASE_URL + '/assets/uploads/';
 console.log("System Ready.");
 console.log("API Target:", API_PATH);
 
-// ============================================================
 // 2. DOCUMENT READY (EVENT LISTENERS)
-// ============================================================
 $(document).ready(function() {
 
     // --- TAB PROFILE ---
@@ -361,10 +357,7 @@ function showConfirm(message, onOk, onCancel, title = 'Konfirmasi'){
     });
 }
 
-// ============================================================
 // 3. FUNGSI GLOBAL & LOGIC
-// ============================================================
-
 function reloadAllLists() {
     if($('#recipeList').length) loadRecipes();
     if($('#pendingList').length) loadPendingRecipes();
